@@ -1,0 +1,40 @@
+
+* {
+    margin: 0;
+    overflow: none;
+    text-align: center;
+}
+
+#ids {
+    margin-top: 270px;
+    color: #747474;
+}
+
+#inputBar, button {
+    margin-top: 20px;
+}
+
+#inputBar {
+    width: 250px;
+}
+
+#title {
+    font-size: 30px;
+    padding: 20px;
+}
+
+#npc {
+    font-size: 20px;
+    padding: 20px;
+}
+
+#bz {
+    font-size: 20px;
+    padding: 20px;
+}
+
+#awsr {
+    text-decoration: underline;
+    font-size: 20px;
+    padding: 20px;
+}
