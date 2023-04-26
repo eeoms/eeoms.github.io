@@ -3,6 +3,7 @@ const title = document.getElementById('title')
 const npc = document.getElementById('npc')
 const bzEle = document.getElementById('bz')
 const awsr = document.getElementById('awsr')
+const container = document.getElementById('container')
 
 const fetchNPCSellPrice  = async () => {
     const itemsAPIResponse = await fetch(`https://api.hypixel.net/resources/skyblock/items`);
@@ -13,13 +14,15 @@ const fetchNPCSellPrice  = async () => {
     const items = itemsAPI.items
     const bz = bzAPI.products
 
+    container.style.height = "500px"
+
     const item = document.getElementById("inputBar").value;
     console.log(item)
 
     const npcItem = items.find(({ id }) => id === item);
     const bzItem = bz[item].quick_status.sellPrice
 
-    title.innerText = npcItem.name + ":";
+    title.innerText = npcItem.name
     npc.innerHTML = "NPC sell: " + npcItem.npc_sell_price + '$';
     bzEle.innerHTML = "BZ sell: " + Math.round(bzItem) + '$';
 
