@@ -10,14 +10,17 @@
 <body>
     <script src="script.js" defer></script>
 
-    <p id="ids">Only works with item ID's</p>
+    <div id="container">
 
-    <input id='inputBar' type="text" placeholder="ENCHANTED_DIAMOND_BLOCK">
-    <button onclick='fetchNPCSellPrice()' type="submit">Submit</button>
-    
-    <h1 id="title"></h1>
-    <p id="npc"></p>
-    <p id="bz"></p>
-    <p id="awsr"></p>
+        <h1 class="search-title">Compare prices for</h1>
+
+        <input id='inputBar' type="text" placeholder="Enter item">
+        <button onclick='fetchNPCSellPrice()' type="submit">Submit</button>
+        
+        <h1 id="title"></h1>
+        <p id="npc"></p>
+        <p id="bz"></p>
+        <h1 id="awsr"></h1>
+    </div>
 </body>
 </html>
