@@ -1,1 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Activity Tracker</title>
+</head>
+<body>
+    <h1>Activity Tracker</h1>
 
+    <h2>Daily Tracking</h2>
+    <form id="daily-form">
+        <label for="activity">Activity:</label>
+        <input type="text" id="activity" placeholder="Enter activity name">
+        <label for="date">Date:</label>
+        <input type="date" id="date">
+        <label for="completed">Completed:</label>
+        <input type="checkbox" id="completed">
+        <button type="button" id="track-button">Track</button>
+    </form>
+
+    <h2>Monthly Overview</h2>
+    <table id="monthly-overview">
+        <thead>
+            <tr>
+                <th>Activity</th>
+                <th>Days Completed</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Monthly overview data will be populated here -->
+        </tbody>
+    </table>
+
+    <script>
+        const trackButton = document.getElementById('track-button');
+        const monthlyOverview = document.getElementById('monthly-overview');
+
+        trackButton.addEventListener('click', () => {
+            const activityName = document.getElementById('activity').value;
+            const date = document.getElementById('date').value;
+            const completed = document.getElementById('completed').checked;
+
+            // Add your logic to save this data for monthly overview
+
+            // Clear the form fields
+            document.getElementById('activity').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('completed').checked = false;
+        });
+
+        // You can add logic to display monthly overview data here
+    </script>
+</body>
+</html>
