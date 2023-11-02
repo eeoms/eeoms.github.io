@@ -6,16 +6,30 @@
 <body>
     <h1>Activity Tracker</h1>
 
+    <h2>Add Activity</h2>
+    <form id="add-activity-form">
+        <label for="new-activity">New Activity:</label>
+        <input type="text" id="new-activity" placeholder="Enter a new activity">
+        <button type="button" id="add-activity-button">Add</button>
+    </form>
+
     <h2>Daily Tracking</h2>
     <form id="daily-form">
-        <label for="activity">Activity:</label>
-        <input type="text" id="activity" placeholder="Enter activity name">
+        <label for="activity-select">Select Activity:</label>
+        <select id="activity-select">
+            <!-- Activities added will be populated here -->
+        </select>
         <label for="date">Date:</label>
         <input type="date" id="date">
         <label for="completed">Completed:</label>
         <input type="checkbox" id="completed">
         <button type="button" id="track-button">Track</button>
     </form>
+
+    <h2>Activity Log</h2>
+    <ul id="activity-log">
+        <!-- Activity log entries will be added here -->
+    </ul>
 
     <h2>Monthly Overview</h2>
     <table id="monthly-overview">
@@ -31,18 +45,37 @@
     </table>
 
     <script>
+        const addActivityButton = document.getElementById('add-activity-button');
+        const activitySelect = document.getElementById('activity-select');
         const trackButton = document.getElementById('track-button');
+        const activityLog = document.getElementById('activity-log');
         const monthlyOverview = document.getElementById('monthly-overview');
 
+        addActivityButton.addEventListener('click', () => {
+            const newActivity = document.getElementById('new-activity').value;
+            if (newActivity) {
+                const option = document.createElement('option');
+                option.text = newActivity;
+                activitySelect.add(option);
+
+                // Clear the input field
+                document.getElementById('new-activity').value = '';
+            }
+        });
+
         trackButton.addEventListener('click', () => {
-            const activityName = document.getElementById('activity').value;
+            const selectedActivity = activitySelect.value;
             const date = document.getElementById('date').value;
             const completed = document.getElementById('completed').checked;
+
+            const logEntry = document.createElement('li');
+            logEntry.textContent = `${date}: ${selectedActivity} - ${completed ? 'Completed' : 'Not Completed'}`;
+            activityLog.appendChild(logEntry);
 
             // Add your logic to save this data for monthly overview
 
             // Clear the form fields
-            document.getElementById('activity').value = '';
+            activitySelect.selectedIndex = 0;
             document.getElementById('date').value = '';
             document.getElementById('completed').checked = false;
         });
