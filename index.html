@@ -361,56 +361,32 @@
             }
 
             async loadCategoryAssets(category) {
-                const assets = [];
-                let index = 1;
-                
-                // Try to load images starting from 0.png, 1.png, etc.
-                while (true) {
-                    try {
-                        const imagePath = `assets/${category}/${index}.png`;
-                        const img = new Image();
-                        
-                        // Check if image exists
-                        const imageExists = await new Promise((resolve) => {
-                            img.onload = () => resolve(true);
-                            img.onerror = () => resolve(false);
+                const MAX_IMAGES = 100; // Adjust as needed
+                const imagePromises = [];
+
+                for (let i = 1; i <= MAX_IMAGES; i++) {
+                    const imagePath = `assets/${category}/${i}.png`;
+
+                    imagePromises.push(
+                        new Promise((resolve) => {
+                            const img = new Image();
+                            img.onload = () => resolve({
+                                id: `${category}_${i}`,
+                                name: `${category} ${i}`,
+                                url: imagePath
+                            });
+                            img.onerror = () => resolve(null);
                             img.src = imagePath;
-                        });
-                        
-                        if (!imageExists) {
-                            // If we haven't found any images yet, try a few more indices
-                            if (assets.length === 0 && index < 10) {
-                                index++;
-                                continue;
-                            }
-                            break;
-                        }
-                        
-                        assets.push({
-                            id: `${category}_${index}`,
-                            name: `${category} ${index}`,
-                            url: imagePath
-                        });
-                        
-                        index++;
-                        
-                        // Safety limit to prevent infinite loop
-                        if (index > 100) break;
-                        
-                    } catch (error) {
-                        console.log(`No more assets found for ${category}`);
-                        break;
-                    }
+                        })
+                    );
                 }
-                
-                // If no real assets found, fall back to mock assets
-                if (assets.length === 0) {
-                    console.log(`No assets found for ${category}, using mock assets`);
-                    return this.generateMockAssets(category);
-                }
-                
-                return assets;
+
+                const results = await Promise.allSettled(imagePromises);
+                return results
+                    .map(r => r.status === "fulfilled" ? r.value : null)
+                    .filter(Boolean);
             }
+
 
             generateMockAssets(category) {
                 // Generate mock assets for demonstration
