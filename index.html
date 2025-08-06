@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: monospace;
+            background: white;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid black;
+            overflow: hidden;
+        }
+
+        .header {
+            background: black;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid black;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: flex;
+            height: 80vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-right: 2px solid black;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: white;
+            padding: 10px;
+            gap: 5px;
+            border-bottom: 1px solid black;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid black;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: normal;
+            color: black;
+            transition: none;
+            flex: 1;
+            min-width: 80px;
+            font-family: monospace;
+        }
+
+        .tab:hover {
+            background: black;
+            color: white;
+        }
+
+        .tab.active {
+            background: black;
+            color: white;
+        }
+
+        .assets-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 15px;
+        }
+
+        .asset-item {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .asset-item:hover {
+            background: black;
+        }
+
+        .asset-item:hover img {
+            filter: invert(1);
+        }
+
+        .asset-item:active {
+            cursor: grabbing;
+        }
+
+        .asset-item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .canvas-area {
+            flex: 1;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: white;
+            border-left: 2px solid black;
+        }
+
+        .canvas-item {
+            position: absolute;
+            cursor: move;
+            transition: none;
+        }
+
+        .canvas-item:hover {
+            opacity: 0.8;
+        }
+
+        .canvas-item:hover .resize-handle {
+            opacity: 1;
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: black;
+            color: white;
+            border: 2px solid white;
+            cursor: nw-resize;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-family: monospace;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .resize-handle:hover {
+            background: white;
+            color: black;
+            border-color: black;
+        }
+
+        .canvas-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .control-btn {
+            padding: 12px 18px;
+            background: white;
+            border: 2px solid black;
+            cursor: pointer;
+            font-weight: normal;
+            color: black;
+            transition: none;
+            font-family: monospace;
+        }
+
+        .control-btn:hover {
+            background: black;
+            color: white;
+        }
+
+        .canvas-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: black;
+            font-size: 18px;
+            pointer-events: none;
+            font-family: monospace;
+        }
+
+        .canvas-guide h3 {
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        .drop-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 3px dashed transparent;
+            transition: none;
+        }
+
+        .drop-zone.drag-over {
+            border-color: black;
+            background: #f0f0f0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .asset-item {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: black;
+            font-style: normal;
+            font-family: monospace;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: black;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FACE CREATOR</h1>
+            <p>Drag and drop facial features to create unique faces</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="tabs">
+                    <button class="tab active" data-category="head">Head</button>
+                    <button class="tab" data-category="jaw">Jaw</button>
+                    <button class="tab" data-category="eyes">Eyes</button>
+                    <button class="tab" data-category="eyebrows">Eyebrows</button>
+                    <button class="tab" data-category="nose">Nose</button>
+                    <button class="tab" data-category="mouth">Mouth</button>
+                    <button class="tab" data-category="beard">Beard</button>
+                    <button class="tab" data-category="moustache">Moustache</button>
+                    <button class="tab" data-category="hair">Hair</button>
+                    <button class="tab" data-category="glasses">Glasses</button>
+                </div>
+                
+                <div class="assets-container">
+                    <div class="asset-grid" id="assetGrid">
+                        <div class="loading">Loading assets from assets/ folder...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="canvas-area">
+                <div class="controls">
+                    <button class="control-btn" onclick="clearCanvas()">Clear All</button>
+                    <button class="control-btn" onclick="exportFace()">Export Face</button>
+                </div>
+                
+                <div class="canvas" id="canvas">
+                    <div class="drop-zone" id="dropZone"></div>
+                    <div class="canvas-guide" id="canvasGuide">
+                        <h3>Create Your Face</h3>
+                        <p>Drag facial features from the sidebar to build your custom face</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FaceCreator {
+            constructor() {
+                this.currentCategory = 'head';
+                this.canvasItems = [];
+                this.dragOffset = { x: 0, y: 0 };
+                this.itemCounter = 0;
+                this.assets = {};
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadAssets();
+            }
+
+            setupEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchTab(e.target.dataset.category);
+                    });
+                });
+
+                // Canvas drop zone
+                const dropZone = document.getElementById('dropZone');
+                dropZone.addEventListener('dragover', this.handleDragOver.bind(this));
+                dropZone.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                dropZone.addEventListener('drop', this.handleDrop.bind(this));
+            }
+
+            async loadAssets() {
+                const categories = ['head', 'jaw', 'eyes', 'eyebrows', 'nose', 'mouth', 'beard', 'moustache', 'hair', 'glasses'];
+                
+                for (const category of categories) {
+                    this.assets[category] = await this.loadCategoryAssets(category);
+                }
+                
+                this.displayAssets(this.currentCategory);
+            }
+
+            async loadCategoryAssets(category) {
+                const assets = [];
+                let index = 1;
+                
+                // Try to load images starting from 0.png, 1.png, etc.
+                while (true) {
+                    try {
+                        const imagePath = `assets/${category}/${index}.png`;
+                        const img = new Image();
+                        
+                        // Check if image exists
+                        const imageExists = await new Promise((resolve) => {
+                            img.onload = () => resolve(true);
+                            img.onerror = () => resolve(false);
+                            img.src = imagePath;
+                        });
+                        
+                        if (!imageExists) {
+                            // If we haven't found any images yet, try a few more indices
+                            if (assets.length === 0 && index < 10) {
+                                index++;
+                                continue;
+                            }
+                            break;
+                        }
+                        
+                        assets.push({
+                            id: `${category}_${index}`,
+                            name: `${category} ${index}`,
+                            url: imagePath
+                        });
+                        
+                        index++;
+                        
+                        // Safety limit to prevent infinite loop
+                        if (index > 100) break;
+                        
+                    } catch (error) {
+                        console.log(`No more assets found for ${category}`);
+                        break;
+                    }
+                }
+                
+                // If no real assets found, fall back to mock assets
+                if (assets.length === 0) {
+                    console.log(`No assets found for ${category}, using mock assets`);
+                    return this.generateMockAssets(category);
+                }
+                
+                return assets;
+            }
+
+            generateMockAssets(category) {
+                // Generate mock assets for demonstration
+                const assets = [];
+                const colors = ['#8B4513', '#D2691E', '#CD853F', '#F4A460', '#DEB887'];
+                
+                for (let i = 1; i <= 6; i++) {
+                    assets.push({
+                        id: `${category}_${i}`,
+                        name: `${category} ${i}`,
+                        url: this.createMockImage(category, colors[i % colors.length])
+                    });
+                }
+                
+                return assets;
+            }
+
+            createMockImage(category, color) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 80;
+                canvas.height = 80;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = color;
+                
+                switch (category) {
+                    case 'head':
+                        ctx.beginPath();
+                        ctx.arc(40, 40, 35, 0, 2 * Math.PI);
+                        ctx.fill();
+                        break;
+                    case 'jaw':
+                        ctx.beginPath();
+                        ctx.arc(40, 30, 30, 0, Math.PI);
+                        ctx.fill();
+                        break;
+                    case 'eyes':
+                        ctx.beginPath();
+                        ctx.arc(25, 40, 8, 0, 2 * Math.PI);
+                        ctx.arc(55, 40, 8, 0, 2 * Math.PI);
+                        ctx.fill();
+                        break;
+                    case 'eyebrows':
+                        ctx.fillRect(20, 30, 15, 3);
+                        ctx.fillRect(45, 30, 15, 3);
+                        break;
+                    case 'nose':
+                        ctx.fillRect(35, 35, 10, 20);
+                        break;
+                    case 'mouth':
+                        ctx.beginPath();
+                        ctx.arc(40, 50, 15, 0, Math.PI);
+                        ctx.fill();
+                        break;
+                    case 'beard':
+                        ctx.beginPath();
+                        ctx.arc(40, 65, 25, 0, Math.PI);
+                        ctx.fill();
+                        break;
+                    case 'moustache':
+                        ctx.fillRect(30, 45, 20, 5);
+                        break;
+                    case 'hair':
+                        ctx.beginPath();
+                        ctx.arc(40, 25, 35, Math.PI, 2 * Math.PI);
+                        ctx.fill();
+                        break;
+                    case 'glasses':
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(25, 40, 12, 0, 2 * Math.PI);
+                        ctx.arc(55, 40, 12, 0, 2 * Math.PI);
+                        ctx.moveTo(37, 40);
+                        ctx.lineTo(43, 40);
+                        ctx.stroke();
+                        break;
+                    default:
+                        ctx.fillRect(20, 20, 40, 40);
+                        break;
+                }
+                
+                return canvas.toDataURL();
+            }
+
+            switchTab(category) {
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                document.querySelector(`[data-category="${category}"]`).classList.add('active');
+                this.currentCategory = category;
+                this.displayAssets(category);
+            }
+
+            displayAssets(category) {
+                const grid = document.getElementById('assetGrid');
+                const assets = this.assets[category] || [];
+                
+                if (assets.length === 0) {
+                    grid.innerHTML = '<div class="error">No assets found in assets/' + category + '/ folder</div>';
+                    return;
+                }
+                
+                grid.innerHTML = '';
+                
+                assets.forEach(asset => {
+                    const assetElement = document.createElement('div');
+                    assetElement.className = 'asset-item';
+                    assetElement.draggable = true;
+                    assetElement.dataset.assetId = asset.id;
+                    
+                    const img = document.createElement('img');
+                    img.src = asset.url;
+                    img.alt = asset.name;
+                    
+                    // Handle image load errors
+                    img.onerror = () => {
+                        assetElement.innerHTML = '<div style="font-size: 10px; text-align: center;">Missing<br>Image</div>';
+                        assetElement.draggable = false;
+                    };
+                    
+                    assetElement.appendChild(img);
+                    
+                    assetElement.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', asset.id);
+                        e.dataTransfer.effectAllowed = 'copy';
+                    });
+                    
+                    grid.appendChild(assetElement);
+                });
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                document.getElementById('dropZone').classList.add('drag-over');
+            }
+
+            handleDragLeave(e) {
+                document.getElementById('dropZone').classList.remove('drag-over');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                document.getElementById('dropZone').classList.remove('drag-over');
+                
+                const assetId = e.dataTransfer.getData('text/plain');
+                const rect = document.getElementById('canvas').getBoundingClientRect();
+                const x = e.clientX - rect.left - 40;
+                const y = e.clientY - rect.top - 40;
+                
+                this.addItemToCanvas(assetId, x, y);
+                this.hideCanvasGuide();
+            }
+
+            addItemToCanvas(assetId, x, y) {
+                const asset = this.findAsset(assetId);
+                if (!asset) return;
+
+                const canvasItem = document.createElement('div');
+                canvasItem.className = 'canvas-item';
+                canvasItem.style.left = x + 'px';
+                canvasItem.style.top = y + 'px';
+                canvasItem.style.width = '80px';
+                canvasItem.style.height = '80px';
+                canvasItem.style.zIndex = this.itemCounter + 1; // Stack items properly
+                canvasItem.dataset.itemId = this.itemCounter++;
+
+                const img = document.createElement('img');
+                img.src = asset.url;
+                img.alt = asset.name;
+                canvasItem.appendChild(img);
+
+                this.setupCanvasItemEvents(canvasItem);
+                
+                document.getElementById('canvas').appendChild(canvasItem);
+                this.canvasItems.push(canvasItem);
+                
+                console.log(`Added item ${canvasItem.dataset.itemId}, total items: ${this.canvasItems.length}`);
+            }
+
+            setupCanvasItemEvents(item) {
+                // Create resize handle
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                resizeHandle.innerHTML = '⟲';
+                item.appendChild(resizeHandle);
+
+                // Store references to handlers so we can properly remove them
+                let dragMouseMoveHandler = null;
+                let dragMouseUpHandler = null;
+                let resizeMouseMoveHandler = null;
+                let resizeMouseUpHandler = null;
+
+                // Store reference to class instance
+                const self = this;
+
+                // Mouse down on item (for dragging)
+                item.addEventListener('mousedown', function(e) {
+                    if (e.target === resizeHandle) return; // Don't drag when clicking resize handle
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Bring item to front when clicked
+                    const maxZ = Math.max(...self.canvasItems.map(item => parseInt(item.style.zIndex) || 0));
+                    item.style.zIndex = maxZ + 1;
+                    
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const startLeft = parseInt(item.style.left) || 0;
+                    const startTop = parseInt(item.style.top) || 0;
+                    
+                    // Remove any existing handlers first
+                    if (dragMouseMoveHandler) {
+                        document.removeEventListener('mousemove', dragMouseMoveHandler);
+                    }
+                    if (dragMouseUpHandler) {
+                        document.removeEventListener('mouseup', dragMouseUpHandler);
+                    }
+                    
+                    dragMouseMoveHandler = function(e) {
+                        const deltaX = e.clientX - startX;
+                        const deltaY = e.clientY - startY;
+                        
+                        item.style.left = (startLeft + deltaX) + 'px';
+                        item.style.top = (startTop + deltaY) + 'px';
+                    };
+
+                    dragMouseUpHandler = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        document.removeEventListener('mousemove', dragMouseMoveHandler);
+                        document.removeEventListener('mouseup', dragMouseUpHandler);
+                        dragMouseMoveHandler = null;
+                        dragMouseUpHandler = null;
+                    };
+                    
+                    document.addEventListener('mousemove', dragMouseMoveHandler);
+                    document.addEventListener('mouseup', dragMouseUpHandler);
+                });
+
+                // Mouse down on resize handle
+                resizeHandle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Bring item to front when resizing
+                    const maxZ = Math.max(...self.canvasItems.map(item => parseInt(item.style.zIndex) || 0));
+                    item.style.zIndex = maxZ + 1;
+                    
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const startWidth = item.offsetWidth;
+                    const startHeight = item.offsetHeight;
+                    
+                    // Remove any existing handlers first
+                    if (resizeMouseMoveHandler) {
+                        document.removeEventListener('mousemove', resizeMouseMoveHandler);
+                    }
+                    if (resizeMouseUpHandler) {
+                        document.removeEventListener('mouseup', resizeMouseUpHandler);
+                    }
+                    
+                    resizeMouseMoveHandler = function(e) {
+                        const deltaX = e.clientX - startX;
+                        const deltaY = e.clientY - startY;
+                        
+                        // Calculate new size (using the larger delta to maintain aspect ratio)
+                        const delta = Math.max(deltaX, deltaY);
+                        const newSize = Math.max(20, startWidth + delta); // Minimum size of 20px
+                        
+                        item.style.width = newSize + 'px';
+                        item.style.height = newSize + 'px';
+                    };
+
+                    resizeMouseUpHandler = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        document.removeEventListener('mousemove', resizeMouseMoveHandler);
+                        document.removeEventListener('mouseup', resizeMouseUpHandler);
+                        resizeMouseMoveHandler = null;
+                        resizeMouseUpHandler = null;
+                    };
+                    
+                    document.addEventListener('mousemove', resizeMouseMoveHandler);
+                    document.addEventListener('mouseup', resizeMouseUpHandler);
+                });
+
+                // Double-click to remove
+                item.addEventListener('dblclick', function(e) {
+                    if (e.target === resizeHandle) return; // Don't remove when double-clicking resize handle
+                    
+                    // Clean up any active handlers before removing
+                    if (dragMouseMoveHandler) {
+                        document.removeEventListener('mousemove', dragMouseMoveHandler);
+                        document.removeEventListener('mouseup', dragMouseUpHandler);
+                    }
+                    if (resizeMouseMoveHandler) {
+                        document.removeEventListener('mousemove', resizeMouseMoveHandler);
+                        document.removeEventListener('mouseup', resizeMouseUpHandler);
+                    }
+                    
+                    item.remove();
+                    self.canvasItems = self.canvasItems.filter(i => i !== item);
+                    
+                    if (self.canvasItems.length === 0) {
+                        self.showCanvasGuide();
+                    }
+                });
+            }
+
+            findAsset(assetId) {
+                for (const category in this.assets) {
+                    const asset = this.assets[category].find(a => a.id === assetId);
+                    if (asset) return asset;
+                }
+                return null;
+            }
+
+            hideCanvasGuide() {
+                const guide = document.getElementById('canvasGuide');
+                guide.style.display = 'none';
+            }
+
+            showCanvasGuide() {
+                const guide = document.getElementById('canvasGuide');
+                guide.style.display = 'block';
+            }
+        }
+
+        // Global functions for controls
+        function clearCanvas() {
+            const canvas = document.getElementById('canvas');
+            const items = canvas.querySelectorAll('.canvas-item');
+            items.forEach(item => item.remove());
+            
+            app.canvasItems = [];
+            app.showCanvasGuide();
+        }
+
+        function exportFace() {
+            const canvas = document.getElementById('canvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            // Create a temporary canvas for export
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = rect.width;
+            exportCanvas.height = rect.height;
+            const ctx = exportCanvas.getContext('2d');
+            
+            // Set background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            
+            // Draw each canvas item
+            const items = canvas.querySelectorAll('.canvas-item');
+            let loadedImages = 0;
+            const totalImages = items.length;
+            
+            if (totalImages === 0) {
+                alert('Please add some facial features before exporting!');
+                return;
+            }
+            
+            items.forEach(item => {
+                const img = new Image();
+                img.onload = () => {
+                    const x = parseInt(item.style.left);
+                    const y = parseInt(item.style.top);
+                    ctx.drawImage(img, x, y, 80, 80);
+                    
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                        // Download the image
+                        const link = document.createElement('a');
+                        link.download = 'my-face.png';
+                        link.href = exportCanvas.toDataURL();
+                        link.click();
+                    }
+                };
+                img.src = item.querySelector('img').src;
+            });
+        }
+
+        // Initialize the app
+        const app = new FaceCreator();
+    </script>
+</body>
+</html>
