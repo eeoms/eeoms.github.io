@@ -305,7 +305,6 @@
             <div class="canvas-area">
                 <div class="controls">
                     <button class="control-btn" onclick="clearCanvas()">Clear All</button>
-                    <button class="control-btn" onclick="exportFace()">Export Face</button>
                 </div>
                 
                 <div class="canvas" id="canvas">
@@ -752,50 +751,6 @@
             
             app.canvasItems = [];
             app.showCanvasGuide();
-        }
-
-        function exportFace() {
-            const canvas = document.getElementById('canvas');
-            const rect = canvas.getBoundingClientRect();
-            
-            // Create a temporary canvas for export
-            const exportCanvas = document.createElement('canvas');
-            exportCanvas.width = rect.width;
-            exportCanvas.height = rect.height;
-            const ctx = exportCanvas.getContext('2d');
-            
-            // Set background
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-            
-            // Draw each canvas item
-            const items = canvas.querySelectorAll('.canvas-item');
-            let loadedImages = 0;
-            const totalImages = items.length;
-            
-            if (totalImages === 0) {
-                alert('Please add some facial features before exporting!');
-                return;
-            }
-            
-            items.forEach(item => {
-                const img = new Image();
-                img.onload = () => {
-                    const x = parseInt(item.style.left);
-                    const y = parseInt(item.style.top);
-                    ctx.drawImage(img, x, y, 80, 80);
-                    
-                    loadedImages++;
-                    if (loadedImages === totalImages) {
-                        // Download the image
-                        const link = document.createElement('a');
-                        link.download = 'my-face.png';
-                        link.href = exportCanvas.toDataURL();
-                        link.click();
-                    }
-                };
-                img.src = item.querySelector('img').src;
-            });
         }
 
         // Initialize the app
