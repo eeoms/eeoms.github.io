@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Creator</title>
+    <title>Ultimate Flash Face Online</title>
     <style>
         * {
             margin: 0;
@@ -11,37 +11,34 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevents scrolling */
+        }
+
         body {
             font-family: monospace;
             background: white;
-            min-height: 100vh;
-            padding: 10px;
         }
 
         .container {
-            max-width: 1400px;
+            width: 100%;
+            height: 100%;
             margin: 0 auto;
             background: white;
             border: 2px solid black;
             overflow: hidden;
-        }
-
-        .header {
-            background: black;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 2px solid black;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
         }
 
         .main-content {
             display: flex;
-            height: 80vh;
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
         }
 
         .sidebar {
@@ -87,7 +84,7 @@
 
         .assets-container {
             flex: 1;
-            padding: 20px;
+            padding: 5px;
             overflow-y: auto;
         }
 
@@ -223,7 +220,7 @@
             transform: translate(-50%, -50%);
             text-align: center;
             color: black;
-            font-size: 18px;
+            font-size: 10px;
             pointer-events: none;
             font-family: monospace;
         }
@@ -275,10 +272,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>FACE CREATOR</h1>
-            <p>Drag and drop facial features to create unique faces</p>
-        </div>
         
         <div class="main-content">
             <div class="sidebar">
